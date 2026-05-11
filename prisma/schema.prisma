@@ -1,0 +1,590 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DISABLED
+  LOCKED
+}
+
+enum AuthProvider {
+  GOOGLE
+  PASSWORD
+}
+
+enum ServiceType {
+  AIRLINE
+  HOTEL
+  RAIL
+  BUS
+  CAB
+  DMC
+  VISA
+  INSURANCE
+  OTHER
+}
+
+enum BookingStatus {
+  DRAFT
+  CONFIRMED
+  TICKETED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaxType {
+  ADT
+  CHD
+  INF
+}
+
+enum Sex {
+  MALE
+  FEMALE
+  TRANSGENDER
+}
+
+enum ModeOfJourney {
+  FLIGHT
+  TRAIN
+  BUS
+  HOTEL
+  CAB
+  OTHER
+}
+
+enum PaymentType {
+  RECEIVABLE
+  EXPENSE
+  REFUND_INBOUND
+  REFUND_OUTBOUND
+}
+
+enum PaymentMode {
+  CASH
+  CARD
+  UPI
+  NETBANKING
+  BANK_TRANSFER
+  CHEQUE
+  WALLET
+  OTHER
+}
+
+enum FileKind {
+  TICKET
+  INVOICE
+  VOUCHER
+  PASSPORT
+  VISA
+  OTHER
+}
+
+enum OcrStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  LOGIN
+  LOGOUT
+  ROLE_CHANGE
+  PERMISSION_CHANGE
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  users     User[]
+  accounts  Account[]
+  customers Customer[]
+  vendors   Vendor[]
+  bookings  Booking[]
+  payments  Payment[]
+  files     FileAsset[]
+  ocrJobs   OcrJob[]
+  auditLogs AuditLog[]
+
+  @@index([deletedAt])
+  @@map("organizations")
+}
+
+model User {
+  id          String     @id @default(uuid())
+  orgId       String
+  email       String?
+  name        String?
+  phone       String?
+  avatar      String?
+  status      UserStatus @default(INACTIVE)
+  timezone    String     @default("Asia/Kolkata")
+  locale      String?
+  dateFormat  String?
+  theme       String?
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  org           Organization   @relation(fields: [orgId], references: [id])
+  identities    AuthIdentity[]
+  sessions      AuthSession[]
+  roles         UserRole[]
+  uploadedFiles FileAsset[]    @relation("FileUploadedBy")
+  auditLogs     AuditLog[]     @relation("AuditActor")
+
+  @@index([orgId, email])
+  @@index([orgId, status])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model AuthIdentity {
+  id          String       @id @default(uuid())
+  orgId       String
+  userId      String
+  provider    AuthProvider
+  providerSub String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerSub])
+  @@index([orgId, userId])
+  @@map("auth_identities")
+}
+
+model AuthSession {
+  id               String    @id @default(uuid())
+  userId           String
+  refreshTokenHash String    @unique
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("auth_sessions")
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  name        String
+  description String?
+  isSystem    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@index([deletedAt])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  resource    String
+  action      String
+  scope       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles RolePermission[]
+
+  @@index([resource, action, scope])
+  @@map("permissions")
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  createdBy String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+  createdBy    String?
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model Account {
+  id         String    @id @default(uuid())
+  orgId      String
+  bankName   String?
+  ifscCode   String?
+  branchName String?
+  accountNo  String?
+  upiId      String?
+  isActive   Boolean   @default(true)
+  createdBy  String
+  updatedBy  String
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  org              Organization @relation(fields: [orgId], references: [id])
+  customers        Customer[]
+  vendors          Vendor[]
+  incomingPayments Payment[]    @relation("PaymentToAccount")
+  outgoingPayments Payment[]    @relation("PaymentFromAccount")
+
+  @@index([orgId, archivedAt])
+  @@index([orgId, isActive])
+  @@index([deletedAt])
+  @@map("accounts")
+}
+
+model Customer {
+  id            String    @id @default(uuid())
+  orgId         String
+  name          String
+  phone         String?
+  email         String?
+  passportNo    String?
+  aadhaarNo     String?
+  visaNo        String?
+  gstin         String?
+  accountId     String?
+  totalBookings Int       @default(0)
+  totalSpent    Decimal   @default(0) @db.Decimal(14, 2)
+  createdBy     String
+  updatedBy     String
+  isDeleted     Boolean   @default(false)
+  archivedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  org      Organization @relation(fields: [orgId], references: [id])
+  account  Account?     @relation(fields: [accountId], references: [id])
+  bookings Booking[]
+  payments Payment[]
+
+  @@index([orgId, isDeleted])
+  @@index([orgId, email])
+  @@index([orgId, phone])
+  @@index([orgId, passportNo])
+  @@index([orgId, accountId])
+  @@index([orgId, updatedAt])
+  @@index([deletedAt])
+  @@map("customers")
+}
+
+model Vendor {
+  id            String      @id @default(uuid())
+  orgId         String
+  name          String
+  serviceType   ServiceType
+  pocName       String?
+  phone         String?
+  email         String?
+  gstin         String?
+  accountId     String?
+  totalExpense  Decimal     @default(0) @db.Decimal(14, 2)
+  totalBookings Int         @default(0)
+  createdBy     String
+  updatedBy     String
+  isDeleted     Boolean     @default(false)
+  archivedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+
+  org      Organization @relation(fields: [orgId], references: [id])
+  account  Account?     @relation(fields: [accountId], references: [id])
+  bookings Booking[]
+  payments Payment[]
+
+  @@index([orgId, isDeleted])
+  @@index([orgId, email])
+  @@index([orgId, phone])
+  @@index([orgId, serviceType])
+  @@index([orgId, name, serviceType])
+  @@index([orgId, accountId])
+  @@index([deletedAt])
+  @@map("vendors")
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  orgId          String
+  customerId     String
+  vendorId       String?
+  ticketFileId   String?
+  bookingDate    DateTime
+  currency       String
+  totalAmount    Decimal       @db.Decimal(14, 2)
+  paidAmount     Decimal       @default(0) @db.Decimal(14, 2)
+  refundedAmount Decimal       @default(0) @db.Decimal(14, 2)
+  dueAmount      Decimal       @db.Decimal(14, 2)
+  paxCount       Int           @default(0)
+  primaryPaxName String?
+  travelStartAt  DateTime?
+  travelEndAt    DateTime?
+  packageName    String?
+  pnrNo          String?
+  modeOfJourney  String?
+  advanceAmount  Decimal?      @db.Decimal(14, 2)
+  status         BookingStatus @default(DRAFT)
+  createdBy      String
+  updatedBy      String
+  isDeleted      Boolean       @default(false)
+  archivedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  org         Organization       @relation(fields: [orgId], references: [id])
+  customer    Customer           @relation(fields: [customerId], references: [id])
+  vendor      Vendor?            @relation(fields: [vendorId], references: [id])
+  ticketFile  FileAsset?         @relation("BookingTicketFile", fields: [ticketFileId], references: [id])
+  pax         BookingPax[]
+  itineraries BookingItinerary[]
+  payments    Payment[]
+
+  @@index([orgId, isDeleted])
+  @@index([orgId, customerId, isDeleted])
+  @@index([orgId, vendorId, isDeleted])
+  @@index([orgId, status, isDeleted])
+  @@index([orgId, bookingDate, isDeleted])
+  @@index([orgId, travelStartAt, isDeleted])
+  @@index([orgId, travelEndAt, isDeleted])
+  @@index([orgId, createdAt])
+  @@index([orgId, pnrNo])
+  @@index([deletedAt])
+  @@map("bookings")
+}
+
+model BookingPax {
+  id         String   @id @default(uuid())
+  orgId      String
+  bookingId  String
+  paxName    String
+  paxType    PaxType
+  sex        Sex?
+  passportNo String?
+  dob        DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, bookingId])
+  @@map("booking_pax")
+}
+
+model BookingItinerary {
+  id        String   @id @default(uuid())
+  orgId     String
+  bookingId String
+  name      String
+  seqNo     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking  Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  segments BookingSegment[]
+
+  @@index([orgId, bookingId])
+  @@unique([bookingId, seqNo])
+  @@map("booking_itineraries")
+}
+
+model BookingSegment {
+  id            String        @id @default(uuid())
+  orgId         String
+  itineraryId   String
+  seqNo         Int
+  modeOfJourney ModeOfJourney
+  carrierCode   String?
+  serviceNumber String?
+  depCode       String?
+  arrCode       String?
+  depAt         DateTime?
+  arrAt         DateTime?
+  classCode     String?
+  baggage       String?
+  hotelName     String?
+  hotelAddress  String?
+  checkIn       DateTime?
+  checkOut      DateTime?
+  roomType      String?
+  mealPlan      String?
+  operatorName  String?
+  boardingPoint String?
+  dropPoint     String?
+  misc          Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  itinerary BookingItinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, itineraryId])
+  @@unique([itineraryId, seqNo])
+  @@index([modeOfJourney])
+  @@map("booking_segments")
+}
+
+model Payment {
+  id                String      @id @default(uuid())
+  orgId             String
+  paymentType       PaymentType
+  amount            Decimal     @db.Decimal(14, 2)
+  currency          String
+  paymentMode       PaymentMode
+  bookingId         String?
+  customerId        String?
+  vendorId          String?
+  relatedInvoiceId  String?
+  refundOfPaymentId String?
+  category          String?
+  notes             String?
+  receiptNo         String?
+  fromAccountId     String?
+  toAccountId       String?
+  createdBy         String
+  updatedBy         String
+  isDeleted         Boolean     @default(false)
+  archivedAt        DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deletedAt         DateTime?
+
+  org             Organization @relation(fields: [orgId], references: [id])
+  booking         Booking?     @relation(fields: [bookingId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+  vendor          Vendor?      @relation(fields: [vendorId], references: [id])
+  fromAccount     Account?     @relation("PaymentFromAccount", fields: [fromAccountId], references: [id])
+  toAccount       Account?     @relation("PaymentToAccount", fields: [toAccountId], references: [id])
+  refundOfPayment Payment?     @relation("PaymentRefunds", fields: [refundOfPaymentId], references: [id])
+  refunds         Payment[]    @relation("PaymentRefunds")
+
+  @@index([orgId, isDeleted])
+  @@index([orgId, bookingId, isDeleted])
+  @@index([orgId, customerId, isDeleted])
+  @@index([orgId, vendorId, isDeleted])
+  @@index([orgId, paymentType, isDeleted])
+  @@index([orgId, createdAt])
+  @@index([refundOfPaymentId])
+  @@index([deletedAt])
+  @@map("payments")
+}
+
+model FileAsset {
+  id         String    @id @default(uuid())
+  orgId      String
+  name       String
+  mimeType   String
+  size       Int
+  kind       FileKind
+  storageKey String
+  provider   String
+  uploadedBy String
+  uploadedAt DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  org      Organization @relation(fields: [orgId], references: [id])
+  uploader User         @relation("FileUploadedBy", fields: [uploadedBy], references: [id])
+  bookings Booking[]    @relation("BookingTicketFile")
+  ocrJobs  OcrJob[]
+
+  @@index([orgId, kind])
+  @@index([orgId, uploadedBy])
+  @@index([orgId, uploadedAt])
+  @@index([deletedAt])
+  @@map("files")
+}
+
+model OcrJob {
+  id            String    @id @default(uuid())
+  orgId         String
+  fileId        String?
+  bookingId     String?
+  status        OcrStatus @default(PENDING)
+  engine        String?
+  extractedJson Json?
+  errorMessage  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  org  Organization @relation(fields: [orgId], references: [id])
+  file FileAsset?   @relation(fields: [fileId], references: [id])
+
+  @@index([orgId, status])
+  @@index([orgId, fileId])
+  @@index([bookingId])
+  @@map("ocr_jobs")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  orgId     String
+  actorId   String
+  entity    String
+  entityId  String
+  action    AuditAction
+  diff      Json
+  ip        String
+  userAgent String
+  createdAt DateTime    @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id])
+  actor User         @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([orgId, entity, entityId])
+  @@index([orgId, actorId, createdAt])
+  @@index([orgId, createdAt])
+  @@map("audit_logs")
+}

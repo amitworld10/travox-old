@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: #f8fafc;
+  --foreground: #111827;
+  --muted: #64748b;
+  --border: #d9e2ec;
+  --surface: #ffffff;
+  --color-primary: #2167a8;
+  --color-primary-strong: #164d80;
+  --color-primary-soft: #e9f3fb;
+  --color-primary-border: #b9d7ee;
+  --color-primary-text: #123b60;
+  --color-primary-300: #93c5fd;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.dark body {
+  --background: #030712;
+  --foreground: #f9fafb;
+  --muted: #9ca3af;
+  --border: #1f2937;
+  --surface: #111827;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.page-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+::selection {
+  background: var(--color-primary-border);
+  color: var(--color-primary-text);
+}
