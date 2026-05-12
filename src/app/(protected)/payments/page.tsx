@@ -1,16 +1,19 @@
-import { ModuleOverviewPage } from "@/shared/presentation/components/server";
+import { getCurrentActor } from "@/modules/auth/presentation/http/current-actor";
+import { PrismaBookingRepository } from "@/modules/bookings/infrastructure/prisma-booking-repository";
+import { FinancePageClient } from "@/modules/payments/presentation/components/FinancePageClient";
+import { PrismaPaymentRepository } from "@/modules/payments/infrastructure/prisma-payment-repository";
 
-export default function PaymentsPage() {
-  return (
-    <ModuleOverviewPage
-      description="Receivable payment recording, booking due updates, customer spend changes, and money workflow safeguards arrive with the finance migration."
-      metrics={[
-        { label: "Workflow Type", value: "Receivables" },
-        { label: "Boundary", value: "Transaction" },
-      ]}
-      phase="Iteration 16"
-      title="Payments"
-      workflows={["Record receivable payment", "Prevent overpayment", "Update booking paid and due", "Update customer total spent", "Audit payment mutation"]}
-    />
-  );
+export default async function PaymentsPage() {
+  const actor = await getCurrentActor();
+
+  if (!actor) {
+    return null;
+  }
+
+  const [initial, bookings] = await Promise.all([
+    new PrismaPaymentRepository().list(actor, { type: "RECEIVABLE", limit: 100, offset: 0 }),
+    new PrismaBookingRepository().list(actor, { limit: 100, offset: 0 }),
+  ]);
+
+  return <FinancePageClient accounts={[]} bookings={bookings.data} initial={initial} mode="payments" vendors={[]} />;
 }

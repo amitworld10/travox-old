@@ -3,7 +3,7 @@ import { GoogleLoginUseCase } from "../../application/use-cases/google-login.use
 import { GetCurrentActorUseCase } from "../../application/use-cases/get-current-actor.use-case";
 import { LogoutUseCase } from "../../application/use-cases/logout.use-case";
 import { RefreshSessionUseCase } from "../../application/use-cases/refresh-session.use-case";
-import { NoopAuthAudit } from "../../infrastructure/repositories/noop-auth-audit";
+import { PrismaAuthAudit } from "../../infrastructure/repositories/prisma-auth-audit";
 import { PrismaAuthSessionRepository } from "../../infrastructure/repositories/prisma-auth-session-repository";
 import { PrismaAuthUserRepository } from "../../infrastructure/repositories/prisma-auth-user-repository";
 import { GoogleJwksIdentityProvider } from "../../infrastructure/services/google-jwks-identity-provider";
@@ -13,7 +13,7 @@ export function createAuthUseCases() {
   const users = new PrismaAuthUserRepository();
   const sessions = new PrismaAuthSessionRepository();
   const tokens = new JoseTokenService();
-  const audit = new NoopAuthAudit();
+  const audit = new PrismaAuthAudit();
 
   return {
     googleLogin: new GoogleLoginUseCase({

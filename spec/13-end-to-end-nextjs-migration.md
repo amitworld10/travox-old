@@ -493,6 +493,8 @@ Done when:
 
 ### Phase 9: Port Audit Logs, Metrics, Observability
 
+Iteration 19 status: implemented in the root Next.js app. Audit log route handlers, Prisma-backed audit reads/CSV export, mutation audit recording, cache metrics/reset, route-handler error/logging wrapper, and the active `/logs` UI are now present. Final runtime browser smoke remains part of the Phase 10 parity pass.
+
 Backend:
 
 - Replace Express audit middleware with use-case audit calls.

@@ -1,5 +1,15 @@
-import { migrationPlaceholder } from "@/shared/presentation/http/not-implemented";
+import type { NextRequest } from "next/server";
+import { fail, ok, requireActor, RouteError } from "@/modules/master-data/presentation/http/master-data-route-helpers";
+import { PrismaVendorRepository } from "@/modules/vendors/infrastructure/prisma-vendor-repository";
 
-export function GET() {
-  return migrationPlaceholder("GET", "/api/vendors/[id]/stats");
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const actor = await requireActor("vendors.read.any");
+    const vendor = await new PrismaVendorRepository().findById(actor, id);
+    if (!vendor) throw new RouteError("Vendor not found.", 404);
+    return ok({ totalBookings: vendor.totalBookings, totalExpense: vendor.totalExpense, linkedAccount: Boolean(vendor.accountId) });
+  } catch (error) {
+    return fail(error);
+  }
 }

@@ -1,5 +1,14 @@
-import { migrationPlaceholder } from "@/shared/presentation/http/not-implemented";
+import type { NextRequest } from "next/server";
+import { PrismaCustomerRepository } from "@/modules/customers/infrastructure/prisma-customer-repository";
+import { fail, ok, requireActor } from "@/modules/master-data/presentation/http/master-data-route-helpers";
 
-export function GET() {
-  return migrationPlaceholder("GET", "/api/customers/[id]/bookings");
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const actor = await requireActor("customers.read.any");
+    const data = await new PrismaCustomerRepository().bookings(actor, id);
+    return ok(data);
+  } catch (error) {
+    return fail(error);
+  }
 }

@@ -1,18 +1,15 @@
-import { ModuleOverviewPage } from "@/shared/presentation/components/server";
+import { getCurrentActor } from "@/modules/auth/presentation/http/current-actor";
+import { PrismaCustomerRepository } from "@/modules/customers/infrastructure/prisma-customer-repository";
+import { MasterDataPageClient } from "@/modules/master-data/presentation/components/MasterDataPageClient";
 
-export default function CustomersPage() {
-  return (
-    <ModuleOverviewPage
-      description="Customer records, account links, search, imports, booking history, and report entry points move into the Next module in the next iteration."
-      links={[{ href: "/customers/report", label: "Customer Report" }]}
-      metrics={[
-        { label: "Primary Screen", value: "List + Forms" },
-        { label: "Data Source", value: "Prisma" },
-      ]}
-      phase="Iteration 14"
-      status="Ready for migration"
-      title="Customers"
-      workflows={["Customer list and search", "Create and edit customer profile", "Import customers", "View customer bookings", "Open customer report"]}
-    />
-  );
+export default async function CustomersPage() {
+  const actor = await getCurrentActor();
+
+  if (!actor) {
+    return null;
+  }
+
+  const initial = await new PrismaCustomerRepository().list(actor, { limit: 100, offset: 0 });
+
+  return <MasterDataPageClient initial={initial} mode="customers" />;
 }

@@ -1,5 +1,6 @@
-import { migrationPlaceholder } from "@/shared/presentation/http/not-implemented";
+import { resetCacheMetrics } from "@/modules/metrics/presentation/http/metrics-route-helpers";
+import { jsonOk, withRouteLogging } from "@/shared/presentation/http/route-handler";
 
 export function POST() {
-  return migrationPlaceholder("POST", "/api/metrics/reset");
+  return withRouteLogging("metrics.reset", async () => jsonOk(await resetCacheMetrics()));
 }

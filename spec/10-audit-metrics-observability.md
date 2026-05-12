@@ -170,3 +170,26 @@ Logging behavior:
 - Cache metrics show hits, misses, sets, deletes, errors, hit rate, and total operations.
 - Resetting metrics does not affect customers, bookings, payments, reports, or files.
 
+## Next.js Migration Status
+
+Iteration 19 has migrated this surface into the root Next.js App Router app.
+
+Implemented:
+
+- Audit log DTOs, Prisma repository, filters, and CSV export under `src/modules/audit-logs`.
+- Authenticated route handlers for `/api/audit-logs`, `/api/audit-logs/export`, actor, entity, and date-range queries.
+- Audit recording for migrated critical mutations in auth, accounts, customers, vendors, bookings, payments/refunds, files, and OCR.
+- Cache metrics snapshot/reset under `src/modules/metrics`.
+- Active `/logs` UI with summary cards, filter form, audit table, detail modal, CSV export, and metrics reset for owners.
+- Shared route-handler logging and expected-error response mapping.
+
+Verification:
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm run prisma:validate`
+- `npm run build`
+
+Remaining cutover note:
+
+- Runtime browser smoke for audit export/filtering should be included in the final Iteration 20 parity pass.

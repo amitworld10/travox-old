@@ -1,16 +1,31 @@
-import { ModuleOverviewPage } from "@/shared/presentation/components/server";
+import { getCurrentActor } from "@/modules/auth/presentation/http/current-actor";
+import { FinancePageClient } from "@/modules/payments/presentation/components/FinancePageClient";
+import { PrismaPaymentRepository } from "@/modules/payments/infrastructure/prisma-payment-repository";
 
-export default function RefundsPage() {
+export default async function RefundsPage() {
+  const actor = await getCurrentActor();
+
+  if (!actor) {
+    return null;
+  }
+
+  const repository = new PrismaPaymentRepository();
+  const [outbound, inbound, receivables, expenses] = await Promise.all([
+    repository.list(actor, { type: "REFUND_OUTBOUND", limit: 100, offset: 0 }),
+    repository.list(actor, { type: "REFUND_INBOUND", limit: 100, offset: 0 }),
+    repository.list(actor, { type: "RECEIVABLE", limit: 100, offset: 0 }),
+    repository.list(actor, { type: "EXPENSE", limit: 100, offset: 0 }),
+  ]);
+
   return (
-    <ModuleOverviewPage
-      description="Inbound vendor refunds and outbound customer refunds will be migrated with payment side effects and reconciliation checks."
-      metrics={[
-        { label: "Refund Types", value: "Inbound / Outbound" },
-        { label: "Boundary", value: "Transaction" },
-      ]}
-      phase="Iteration 16"
-      title="Refunds"
-      workflows={["Create inbound refund", "Create outbound refund", "Adjust booking paid and refunded values", "Adjust customer and vendor totals", "Audit refund mutation"]}
+    <FinancePageClient
+      accounts={[]}
+      bookings={[]}
+      expenses={expenses.data}
+      initial={{ ...outbound, data: [...outbound.data, ...inbound.data], count: outbound.count + inbound.count }}
+      mode="refunds"
+      receivables={receivables.data}
+      vendors={[]}
     />
   );
 }

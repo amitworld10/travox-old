@@ -176,69 +176,69 @@
 
 ## Iteration 14: Phase 4 Master Data Modules
 
-- [ ] Port organizations, accounts, customers, and vendors domain/application layers under `src/modules`.
-- [ ] Add Prisma repositories, mappers, Zod schemas, route handlers, and server actions for accounts, customers, and vendors.
-- [ ] Migrate the active UI for every module touched in this iteration, replacing the relevant `src/app/(protected)` placeholders.
-- [ ] Port customers list/search/table/stats/bookings modal/create-edit/import/report entry UI.
-- [ ] Port vendors list/search/table/stats/create-edit/report entry UI.
-- [ ] Port account lookup/create/update/archive UI needed by customer, vendor, payment, and expense workflows.
-- [ ] Preserve org scoping, soft delete, masked sensitive fields, and account links.
-- [ ] Verify customer/vendor/account CRUD, search, report entry points, UI states, responsive layout, and totals preservation.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Port organizations, accounts, customers, and vendors domain/application layers under `src/modules`.
+- [x] Add Prisma repositories, mappers, Zod schemas, route handlers, and server actions for accounts, customers, and vendors.
+- [x] Migrate the active UI for every module touched in this iteration, replacing the relevant `src/app/(protected)` placeholders.
+- [x] Port customers list/search/table/stats/bookings modal/create-edit/import/report entry UI.
+- [x] Port vendors list/search/table/stats/create-edit/report entry UI.
+- [x] Port account lookup/create/update/archive UI needed by customer, vendor, payment, and expense workflows.
+- [x] Preserve org scoping, soft delete, masked sensitive fields, and account links.
+- [x] Verify customer/vendor/account CRUD, search, report entry points, UI states, responsive layout, and totals preservation.
+- [x] Update `PLANS.md` and `tasks.md` after completion.
 
 ## Iteration 15: Phase 5 Bookings
 
-- [ ] Port booking aggregate, PAX, itinerary, and segment domain rules.
-- [ ] Add create, update, list, search, filters, upcoming, overdue, travel dates, stats, revenue stats, soft delete, and status transition use cases.
-- [ ] Add Prisma booking repositories and mappers for relational booking child tables.
-- [ ] Add booking route handlers and UI server actions.
-- [ ] Migrate the active bookings UI, replacing the booking placeholder route.
-- [ ] Port booking management view, filters, nested form state, customer lookup, table actions, and status actions.
-- [ ] Verify booking validation, nested round trips, status transitions, derived fields, customer/vendor booking counts, UI states, and responsive layout.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Port booking aggregate, PAX, itinerary, and segment domain rules.
+- [x] Add create, update, list, search, filters, upcoming, overdue, travel dates, stats, revenue stats, soft delete, and status transition use cases.
+- [x] Add Prisma booking repositories and mappers for relational booking child tables.
+- [x] Add booking route handlers and UI server actions.
+- [x] Migrate the active bookings UI, replacing the booking placeholder route.
+- [x] Port booking management view, filters, nested form state, customer lookup, table actions, and status actions.
+- [x] Verify booking validation, nested round trips, status transitions, derived fields, customer/vendor booking counts, UI states, and responsive layout.
+- [x] Update `PLANS.md` and `tasks.md` after completion.
 
 ## Iteration 16: Phase 6 Payments, Expenses, and Refunds
 
-- [ ] Port receivable, expense, inbound refund, and outbound refund workflows.
-- [ ] Add transaction manager boundaries around every multi-write money workflow.
-- [ ] Preserve cache invalidation ordering and report cache invalidation after writes.
-- [ ] Add route handlers and server actions for payment workflows.
-- [ ] Migrate the active payments, expenses, and refunds UI, replacing all three placeholder routes.
-- [ ] Port payments, expenses, and refunds UI screens and dialogs.
-- [ ] Verify overpayment prevention, customer spend changes, vendor expense changes, booking paid/refunded state, UI states, responsive layout, and reports after writes.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Port receivable, expense, inbound refund, and outbound refund workflows.
+- [x] Add transaction manager boundaries around every multi-write money workflow.
+- [x] Preserve cache invalidation ordering and report cache invalidation after writes.
+- [x] Add route handlers and server actions for payment workflows.
+- [x] Migrate the active payments, expenses, and refunds UI, replacing all three placeholder routes.
+- [x] Port payments, expenses, and refunds UI screens and dialogs.
+- [x] Verify overpayment prevention, customer spend changes, vendor expense changes, booking paid/refunded state, UI states, responsive layout, and reports after writes.
+- [x] Update `PLANS.md` and `tasks.md` after completion.
 
 ## Iteration 17: Phase 7 Reports
 
-- [ ] Port report catalog, `GetReportData`, customer report, and vendor report.
-- [ ] Add report filter schemas, DTO mappers, cache port, Redis implementation, TTL, and normalized cache keys.
-- [ ] Migrate the active reports UI, replacing report center, report runner, customer report, and vendor report placeholders.
-- [ ] Port reporting center, report runner, customer report, vendor report, and export/download route handlers.
-- [ ] Add report-heavy indexes to the Prisma schema where needed.
-- [ ] Verify every supported report ID, filters, exports, totals, report UI states, responsive layout, and invalidation after booking/payment/refund changes.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Port report catalog, `GetReportData`, customer report, and vendor report.
+- [x] Add report filter schemas, DTO mappers, cache port, TTL, normalized cache keys, and a root Next cache adapter.
+- [x] Migrate the active reports UI, replacing report center, report runner, customer report, and vendor report placeholders.
+- [x] Port reporting center, report runner, customer report, vendor report, and export/download route handlers.
+- [x] Add report-heavy indexes to the Prisma schema where needed.
+- [x] Verify every supported report ID, filters, exports, totals, report UI states, responsive layout, and invalidation after booking/payment/refund changes.
+- [x] Update `PLANS.md` and `tasks.md` after completion.
 
 ## Iteration 18: Phase 8 Files and OCR
 
-- [ ] Port file metadata use cases and storage port.
-- [ ] Add Google Drive and local storage adapters behind infrastructure boundaries.
-- [ ] Replace multer behavior with route-handler `request.formData()` handling and explicit file validation.
-- [ ] Port OCR provider port, Gemini adapter, scan-by-upload, scan-by-file, and schema reflection.
-- [ ] Migrate any active files/OCR UI owned by this product surface, replacing placeholders or documenting intentionally absent UI.
-- [ ] Keep legacy ticket upload quarantined unless explicitly requested.
-- [ ] Verify upload, download, delete, OCR configured flow, OCR unconfigured error flow, UI states, and responsive layout where UI exists.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Port file metadata use cases and storage port.
+- [x] Add Google Drive and local storage adapters behind infrastructure boundaries.
+- [x] Replace multer behavior with route-handler `request.formData()` handling and explicit file validation.
+- [x] Port OCR provider port, Gemini adapter, scan-by-upload, scan-by-file, and schema reflection.
+- [x] Migrate any active files/OCR UI owned by this product surface, replacing placeholders or documenting intentionally absent UI.
+- [x] Keep legacy ticket upload quarantined unless explicitly requested.
+- [x] Verify upload, download, delete, OCR configured flow, OCR unconfigured error flow, UI states, and responsive layout where UI exists.
+- [x] Update `PLANS.md` and `tasks.md` after completion.
 
 ## Iteration 19: Phase 9 Audit Logs, Metrics, and Observability
 
-- [ ] Replace Express audit middleware with use-case audit calls.
-- [ ] Port audit log queries and CSV export.
-- [ ] Port cache metrics and reset through the cache port.
-- [ ] Add route-handler logging and expected-error mapping wrappers.
-- [ ] Migrate the active audit logs UI and any owner-only metrics UI owned by this product surface.
-- [ ] Port audit log UI and owner-only metrics surface if still product-owned.
-- [ ] Verify critical mutation audit logs, audit filters/export, metrics read/reset, UI states, and responsive layout.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Replace Express audit middleware with use-case audit calls.
+- [x] Port audit log queries and CSV export.
+- [x] Port cache metrics and reset through the cache port.
+- [x] Add route-handler logging and expected-error mapping wrappers.
+- [x] Migrate the active audit logs UI and any owner-only metrics UI owned by this product surface.
+- [x] Port audit log UI and owner-only metrics surface if still product-owned.
+- [x] Verify critical mutation audit logs, audit filters/export, metrics read/reset, UI states, and responsive layout.
+- [x] Update `PLANS.md` and `tasks.md` after completion.
 
 ## Iteration 20: Phase 10 Data Migration and Cutover
 

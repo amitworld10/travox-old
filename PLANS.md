@@ -348,7 +348,251 @@ Findings:
 - The `"use server"` auth action file now exports only async server actions; the previous non-action Zod export was removed to satisfy Next build rules.
 - Full business UI for customers, vendors, accounts, bookings, finance, reports, files/OCR, audit logs, and metrics remains owned by Iterations 14 through 19.
 
-### Iterations 14-20: Module Migration and Cutover
+### Iteration 14: Phase 4 Master Data Modules
+
+Status: Completed
+
+Scope:
+
+- Ported the master data slice for organizations, accounts, customers, and vendors into the root Next.js `src/` architecture.
+- Added Prisma-backed repositories, DTO mappers, validation schemas, authenticated route handlers, and server actions for customer/vendor/account workflows.
+- Replaced the protected customers and vendors placeholder pages with active migrated UI.
+- Added customer and vendor report entry pages backed by the migrated Prisma read models.
+
+Deliverables:
+
+- `src/modules/organizations/application/organization-dto.ts`
+- `src/modules/organizations/infrastructure/prisma-organization-repository.ts`
+- `src/modules/accounts/**`
+- `src/modules/customers/**`
+- `src/modules/vendors/**`
+- `src/modules/master-data/presentation/actions/master-data-actions.ts`
+- `src/modules/master-data/presentation/components/MasterDataPageClient.tsx`
+- Updated `/api/accounts`, `/api/customers`, `/api/vendors`, customer import/search/report, and vendor search/report route handlers.
+- Updated `/customers`, `/vendors`, `/customers/report`, and `/vendors/report` pages.
+
+Verification:
+
+- `npm run lint` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+- `npm run prisma:validate` passed.
+
+Findings:
+
+- Reads are server-loaded and passed to client components as serializable DTOs.
+- UI mutations use Server Actions and `revalidatePath`; API route handlers remain available for parity and external access.
+- Customer Aadhaar/passport and vendor GSTIN are masked in repository DTOs by default.
+- Account linking is now available from both customer and vendor screens and preserves org scoping.
+- Customer CSV import is implemented through route-handler `formData()` parsing for migration parity.
+- Runtime CRUD smoke against a logged-in browser session was not run in this CLI-only pass.
+
+### Iteration 15: Phase 5 Bookings
+
+Status: Completed
+
+Scope:
+
+- Ported the booking aggregate into the root Next.js `src/` architecture, including booking root data, PAX rows, itineraries, and relational segments.
+- Added booking validation rules for required customer/currency/amount/PAX, mode-specific segment minimums, derived PAX fields, derived travel dates, due amount, and status transitions.
+- Added Prisma-backed booking repository behavior for create, update, list, search, filters, upcoming, overdue, travel date lookup, stats, revenue stats, status updates, and soft delete.
+- Replaced booking API placeholders with authenticated route handlers.
+- Replaced the protected `/bookings` placeholder with active migrated UI using server-loaded booking, customer, and vendor DTOs.
+
+Deliverables:
+
+- `src/modules/bookings/application/booking-dto.ts`
+- `src/modules/bookings/domain/booking-rules.ts`
+- `src/modules/bookings/infrastructure/prisma-booking-repository.ts`
+- `src/modules/bookings/presentation/actions/booking-actions.ts`
+- `src/modules/bookings/presentation/components/BookingsPageClient.tsx`
+- `src/modules/bookings/presentation/http/booking-route-helpers.ts`
+- `src/modules/bookings/presentation/schemas/booking-schemas.ts`
+- Updated `/api/bookings/**` route handlers.
+- Updated `/bookings` protected page.
+
+Verification:
+
+- `npm run lint` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+- `npm run prisma:validate` passed.
+
+Findings:
+
+- Booking reads are server-loaded and passed as serializable DTOs to the client UI.
+- UI mutations use Server Actions and revalidate bookings plus affected customer/vendor views.
+- Create/update writes replace nested PAX, itinerary, and segment rows inside a Prisma transaction.
+- Customer and vendor `totalBookings` counters are reconciled after booking create, update, and soft delete.
+- Confirm, cancel, complete, and generic status transitions are available through route handlers and Server Actions.
+- The migrated form covers nested PAX and itinerary/segment editing, but runtime browser CRUD smoke was not executed in this CLI-only pass.
+
+### Iteration 16: Phase 6 Payments, Expenses, and Refunds
+
+Status: Completed
+
+Scope:
+
+- Ported receivable payments, expense payments, customer outbound refunds, and vendor inbound refunds into the root Next.js module architecture.
+- Added Prisma-backed payment repository behavior with transactional multi-write workflows for booking paid/due/refunded state, customer spend totals, and vendor expense totals.
+- Replaced payment API placeholders with authenticated route handlers for listing, detail lookup, receivables, expenses, inbound refunds, and outbound refunds.
+- Added Server Actions for finance UI mutations with `revalidatePath` coverage across payments, expenses, refunds, bookings, customers, vendors, reports, and customer/vendor reports.
+- Replaced protected `/payments`, `/expenses`, and `/refunds` placeholders with active migrated UI screens and dialogs.
+
+Deliverables:
+
+- `src/modules/payments/application/payment-dto.ts`
+- `src/modules/payments/infrastructure/prisma-payment-repository.ts`
+- `src/modules/payments/presentation/actions/payment-actions.ts`
+- `src/modules/payments/presentation/components/FinancePageClient.tsx`
+- `src/modules/payments/presentation/http/payment-route-helpers.ts`
+- `src/modules/payments/presentation/schemas/payment-schemas.ts`
+- Updated `/api/payments/**` route handlers.
+- Updated `/payments`, `/expenses`, and `/refunds` protected pages.
+
+Verification:
+
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run prisma:validate` passed.
+- `npm run build` passed.
+
+Findings:
+
+- Receivable writes prevent overpayment and require the booking customer to have a linked account.
+- Expense writes derive the vendor from the destination account, preserving the legacy vendor-account relationship.
+- Refund writes cap refunds to the remaining refundable amount on the original payment.
+- UI reads are server-loaded DTOs; mutations use Server Actions and refresh the affected finance and reporting surfaces.
+- Runtime browser CRUD smoke was not executed in this CLI-only pass.
+
+### Iteration 17: Phase 7 Reports
+
+Status: Completed
+
+Scope:
+
+- Ported the report catalog and all supported dynamic report IDs into the root Next.js module architecture.
+- Added a Prisma-backed report service that builds customer, vendor, booking, payment, refund, monthly income/expense, outstanding, and derived GST report rows from DTO-safe query results.
+- Added report filter parsing for async App Router `searchParams`, normalized cache keys, a report cache port, and a TTL-backed in-process adapter.
+- Replaced report API placeholders with authenticated route handlers for `/api/reports/catalog` and `/api/reports/[reportId]`.
+- Replaced `/reports`, `/reports/[reportId]`, `/customers/report`, and `/vendors/report` placeholders with active migrated UI, filter panels, totals, result tables, pagination, and CSV export.
+- Added report-heavy Prisma indexes for booking date/customer/vendor filters and payment type/date/customer/vendor filters.
+
+Deliverables:
+
+- `src/modules/reports/application/report-dto.ts`
+- `src/modules/reports/application/report-catalog.ts`
+- `src/modules/reports/domain/report-cache.ts`
+- `src/modules/reports/infrastructure/memory-report-cache.ts`
+- `src/modules/reports/infrastructure/prisma-report-service.ts`
+- `src/modules/reports/presentation/components/ReportsCenterClient.tsx`
+- `src/modules/reports/presentation/components/ReportFilters.tsx`
+- `src/modules/reports/presentation/components/ReportTableClient.tsx`
+- `src/modules/reports/presentation/http/report-route-helpers.ts`
+- `src/modules/reports/presentation/schemas/report-schemas.ts`
+- Updated report, customer report, and vendor report route handlers and protected pages.
+- Updated `prisma/schema.prisma` report indexes.
+
+Verification:
+
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run prisma:validate` passed.
+- `npm run build` passed.
+
+Findings:
+
+- Known legacy report IDs now resolve through `/reports/[reportId]`; existing customer/vendor report catalog entries redirect to their first-class pages.
+- Report pages are server-loaded from current Prisma data and use client-only controls only for local table search, pagination, and CSV export.
+- The report cache is intentionally behind a port with 5-minute TTL and normalized keys. The current root Next app does not yet include a Redis package, so this iteration uses an in-process adapter and leaves a Redis adapter as a deployment/infrastructure follow-up.
+- GST/tax view preserves the legacy caution by leaving GST component fields blank when canonical tax split data is absent.
+- Runtime browser export/filter smoke was not executed in this CLI-only pass.
+
+### Iteration 18: Phase 8 Files and OCR
+
+Status: Completed
+
+Scope:
+
+- Ported file metadata, upload, list, detail, update, delete, and download workflows into the root Next.js module architecture.
+- Added a file storage port plus local storage and Google Drive boundary adapters. Local storage is the active default; the Google Drive adapter keeps the infrastructure boundary and local fallback behavior until the root Next app adds credentialed Drive dependencies.
+- Replaced multer-style upload handling with App Router route handlers using `request.formData()`, explicit file kind validation, and a 20MB upload limit.
+- Ported OCR provider and service boundaries, Gemini REST adapter, scan-by-upload, scan-by-file, OCR job persistence, unsupported MIME validation, unconfigured-service errors, and schema reflection.
+- Replaced `/api/files/**`, `/api/scan`, and `/api/schema` placeholders with authenticated route handlers.
+- Confirmed there is no active first-class protected Files/OCR page in the current migrated route map. Legacy ticket upload remains quarantined under `/legacy/tickets` and was not promoted into the active Next architecture.
+
+Deliverables:
+
+- `src/modules/files/application/file-dto.ts`
+- `src/modules/files/domain/file-storage.ts`
+- `src/modules/files/infrastructure/local-file-storage.ts`
+- `src/modules/files/infrastructure/google-drive-storage.ts`
+- `src/modules/files/infrastructure/prisma-file-repository.ts`
+- `src/modules/files/presentation/http/file-route-helpers.ts`
+- `src/modules/files/presentation/schemas/file-schemas.ts`
+- `src/modules/ocr/application/ocr-dto.ts`
+- `src/modules/ocr/application/ocr-schema.ts`
+- `src/modules/ocr/application/normalize-ocr.ts`
+- `src/modules/ocr/domain/ocr-provider.ts`
+- `src/modules/ocr/infrastructure/gemini-ocr-provider.ts`
+- `src/modules/ocr/infrastructure/prisma-ocr-service.ts`
+- `src/modules/ocr/presentation/http/ocr-route-helpers.ts`
+- Updated `/api/files/**`, `/api/scan`, and `/api/schema` route handlers.
+
+Verification:
+
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run prisma:validate` passed.
+- `npm run build` passed.
+
+Findings:
+
+- File downloads return the uploaded bytes with content type, length, and attachment headers from the route handler.
+- OCR never creates a booking; it returns a reviewable booking-like draft and records an OCR job as success or failure.
+- `GET /api/scan` returns configured/unconfigured OCR health so missing `GEMINI_API_KEY` is reported as a service state instead of crashing startup.
+- Runtime upload/download/OCR smoke was not executed in this CLI-only pass.
+
+### Iteration 19: Phase 9 Audit Logs, Metrics, and Observability
+
+Status: Completed
+
+Scope:
+
+- Ported audit log persistence, filtering, actor/entity/date-range queries, and CSV export into the root Next.js module architecture.
+- Replaced audit placeholders under `/api/audit-logs/**` with authenticated route handlers.
+- Added a shared route-handler wrapper for expected-error mapping and unexpected-error logging.
+- Added audit recording to migrated critical mutation paths for auth, accounts, customers, vendors, bookings, payments/refunds, files, and OCR jobs.
+- Ported cache metrics and reset behavior for the root cache port and report cache metrics.
+- Replaced the `/logs` placeholder with an active audit logs UI, filter controls, detail modal, CSV export, and owner metrics reset surface.
+
+Deliverables:
+
+- `src/modules/audit-logs/application/audit-log-dto.ts`
+- `src/modules/audit-logs/application/record-audit-event.ts`
+- `src/modules/audit-logs/infrastructure/prisma-audit-log-repository.ts`
+- `src/modules/audit-logs/presentation/components/AuditLogsPageClient.tsx`
+- `src/modules/audit-logs/presentation/http/audit-log-route-helpers.ts`
+- `src/modules/audit-logs/presentation/schemas/audit-log-schemas.ts`
+- `src/modules/metrics/**`
+- `src/shared/presentation/http/route-handler.ts`
+- Updated `/api/audit-logs/**`, `/api/metrics`, `/api/metrics/reset`, and `/logs`.
+
+Verification:
+
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run prisma:validate` passed.
+- `npm run build` passed.
+
+Findings:
+
+- Audit reads and metrics remain permission-protected with `audit_logs.read.any`, `audit_logs.export.any`, `metrics.read.any`, and `metrics.reset.any`.
+- Audit diff snapshots use masked DTOs where the migrated repositories already mask sensitive values; file storage keys are redacted in audit payloads.
+- Report cache metrics are in-process because the current root Next app still uses the in-process report cache adapter.
+- Runtime browser audit filter/export smoke was not executed in this CLI-only pass.
+
+### Iteration 20: Data Migration and Cutover
 
 Status: Planned
 
@@ -360,12 +604,6 @@ UI migration rule:
 
 Scope:
 
-- Iteration 14 ports organizations, accounts, customers, vendors, and their active UI screens.
-- Iteration 15 ports bookings and the active bookings UI.
-- Iteration 16 ports payments, expenses, refunds, and their active UI screens/dialogs.
-- Iteration 17 ports reports and the reporting center, runner, customer report, vendor report, and export UI.
-- Iteration 18 ports files/OCR plus any active files/OCR UI; intentionally absent UI must be documented.
-- Iteration 19 ports audit logs, metrics, observability, and their active owner-facing UI.
 - Iteration 20 completes data migration, repository cutover, Express retirement, Vite retirement after UI parity, auth compatibility cleanup, and final verification.
 
 Tracking rule:

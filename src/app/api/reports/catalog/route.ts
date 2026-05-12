@@ -1,5 +1,12 @@
-import { migrationPlaceholder } from "@/shared/presentation/http/not-implemented";
+import { getReportCatalog } from "@/modules/reports/application/report-catalog";
+import { fail, ok, requireActor } from "@/modules/master-data/presentation/http/master-data-route-helpers";
 
-export function GET() {
-  return migrationPlaceholder("GET", "/api/reports/catalog");
+export async function GET() {
+  try {
+    await requireActor("reports.read.any");
+    const data = getReportCatalog();
+    return ok({ data, count: data.length });
+  } catch (error) {
+    return fail(error);
+  }
 }
