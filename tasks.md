@@ -242,16 +242,16 @@
 
 ## Iteration 20: Phase 10 Data Migration and Cutover
 
-- [ ] Add Mongo export scripts.
-- [ ] Add transformation scripts from Mongo JSON into Prisma-compatible batches.
-- [ ] Add legacy ID mapping strategy for ObjectIds or non-UUID identifiers.
-- [ ] Split embedded booking PAX, itineraries, and segments into relational rows.
-- [ ] Add reconciliation checks for booking paid/due/refunded values, customer spend, vendor expense, and report totals.
-- [ ] Switch the active repository provider to Prisma.
+- [x] Add Mongo export scripts.
+- [x] Add transformation scripts from Mongo JSON into Prisma-compatible batches.
+- [x] Add legacy ID mapping strategy for ObjectIds or non-UUID identifiers.
+- [x] Split embedded booking PAX, itineraries, and segments into relational rows.
+- [x] Add reconciliation checks for booking paid/due/refunded values, customer spend, vendor expense, and report totals.
+- [x] Switch the active repository provider to Prisma.
 - [ ] Disable Mongo adapters in production.
 - [ ] Retire the Express upstream API after parity checks pass.
 - [ ] Confirm every active Vite UI route has a migrated Next UI replacement before retiring the Vite client.
 - [ ] Retire the Vite client after UI route parity checks pass.
 - [ ] Remove compatibility browser token/localStorage auth paths.
 - [ ] Run final build, typecheck, lint, unit, integration, responsive UI, and critical E2E checks.
-- [ ] Update `PLANS.md` and `tasks.md` after completion.
+- [x] Update `PLANS.md` and `tasks.md` after the migration-tooling pass.

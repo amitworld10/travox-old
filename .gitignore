@@ -8,6 +8,7 @@
 
 # Local audit/reference artifacts that should not ship in PRs
 /tmp-ocr/
+/tmp/
 /Group 1321314854.png
 /travox-logo.png
 node_modules

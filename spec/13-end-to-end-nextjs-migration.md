@@ -521,6 +521,8 @@ Done when:
 
 ### Phase 10: Data Migration and Cutover
 
+Iteration 20 migration-tooling status: export, transform, load, and reconciliation scripts now exist under `scripts/migration`, with the operational runbook in `spec/15-data-migration-cutover.md`. The active repository provider is already Prisma. Express/Vite retirement and browser-token compatibility removal remain gated by a production-sized migration rehearsal, reconciliation, route parity smoke, UI parity smoke, and explicit auth cleanup.
+
 Data:
 
 - Create Mongo export scripts.

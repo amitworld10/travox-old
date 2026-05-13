@@ -593,3 +593,15 @@ model AuditLog {
   @@index([orgId, createdAt])
   @@map("audit_logs")
 }
+
+model LegacyIdMap {
+  id        String   @id @default(uuid())
+  entity    String
+  legacyId  String
+  newId     String
+  createdAt DateTime @default(now())
+
+  @@unique([entity, legacyId])
+  @@index([entity, newId])
+  @@map("legacy_id_maps")
+}

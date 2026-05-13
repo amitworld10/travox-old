@@ -12,7 +12,12 @@
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "db:verify:supabase": "node scripts/verify-supabase-prisma.mjs"
+    "db:verify:supabase": "node scripts/verify-supabase-prisma.mjs",
+    "migration:export:mongo": "node scripts/migration/export-mongo.mjs",
+    "migration:transform": "node scripts/migration/transform-mongo-export.mjs",
+    "migration:load:prisma": "node scripts/migration/load-prisma-batches.mjs",
+    "migration:reconcile": "node scripts/migration/reconcile-prisma.mjs",
+    "test:e2e": "node --test test/e2e/travox-workflows.test.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

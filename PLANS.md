@@ -594,7 +594,7 @@ Findings:
 
 ### Iteration 20: Data Migration and Cutover
 
-Status: Planned
+Status: In progress
 
 UI migration rule:
 
@@ -605,6 +605,32 @@ UI migration rule:
 Scope:
 
 - Iteration 20 completes data migration, repository cutover, Express retirement, Vite retirement after UI parity, auth compatibility cleanup, and final verification.
+
+Completed migration-tooling pass:
+
+- Added `scripts/migration/export-mongo.mjs` to export legacy Mongo collections to JSONL using the server's existing Mongoose dependency.
+- Added `scripts/migration/transform-mongo-export.mjs` to convert exported Mongo JSONL into Prisma-compatible batch files.
+- Added `scripts/migration/load-prisma-batches.mjs` to load transformed batches into the configured Prisma/Postgres database with `createMany` and `skipDuplicates`.
+- Added `scripts/migration/reconcile-prisma.mjs` to verify booking paid/due/refunded totals, booking PAX counts, customer spend/bookings, vendor expense/bookings, and entity counts.
+- Added `LegacyIdMap` to the Prisma schema so migrated data keeps a legacy-to-target ID ledger even when Mongo ObjectId strings are preserved as target string IDs.
+- Added `spec/15-data-migration-cutover.md` with the export, transform, dry-run/load, reconciliation, and retirement gates.
+- Confirmed `src/container/repository-provider.ts` already returns `prisma`.
+
+Remaining cutover blockers:
+
+- The Prisma schema change has not been pushed to a live database in this pass; run `npm run prisma:push` or the deployment migration process before loading batches.
+- Mongo adapters, Express, Vite, and browser-token compatibility should not be retired until a production-sized migration rehearsal, reconciliation, API parity smoke, UI parity smoke, and auth cleanup pass are complete.
+- Runtime migration against real Mongo/Postgres data was not executed in this CLI pass.
+
+Verification:
+
+- `npm run migration:transform -- tmp\migration\empty-mongo-export tmp\migration\prisma-batches-empty` passed.
+- `npm run migration:load:prisma -- tmp\migration\prisma-batches-empty dry-run` passed.
+- `npm run prisma:validate` passed.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run prisma:generate` passed.
 
 Tracking rule:
 
